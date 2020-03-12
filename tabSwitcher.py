@@ -80,7 +80,11 @@ class TabSwitcher():
         self.root.geometry(geom)
 
     def down(self, event):
-        self.fileList.select_set(0)
+        size = self.fileList.size()
+        pos = 1 if size > 1 else 0        
+        self.fileList.select_clear(0, size-1)
+        self.fileList.select_set(pos)
+        self.fileList.activate(pos)
         self.fileList.focus()
 
     def first(self, event):
