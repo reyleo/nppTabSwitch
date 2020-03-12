@@ -22,44 +22,39 @@ class TabSwitcher():
     def __init__(self):
 
         self.root = Tk()
-        self.nppHwnd = ctypes.windll.user32.FindWindowW(u'Notepad++', None)
-        if self.nppHwnd != 0 :
-            rect = RECT()
-            ctypes.windll.user32.GetWindowRect(self.nppHwnd, byref(rect))
-            w = 600
-            x = (rect.w - w)/2 + rect.x
-            h = 400
-            y = (rect.h - h)/2 + rect.y            
-            geom = '%dx%d+%d+%d' % (w, h, x, y)
-            self.root.geometry(geom)
 
-        self.root.lift()
-        self.root.attributes('-topmost',True)
-        #self.root.after_idle(self.root.attributes, '-topmost',False)
-        #self.root.minsize(600, 20)
-        self.root.overrideredirect(1)
-        self.root.wm_attributes('-alpha', 0.9)
-        self.root.configure(background='black')
+        # Styles
+        self.windowStyle = {'background': 'black'}
+        self.searchStyle = {'bg': 'black', 'fg': 'gray90', 'insertbackground': 'gray90', 'highlightcolor': 'PaleGreen3', 'highlightbackground': 'black', 'highlightthickness': 1, 'relief': 'flat'}
+        self.listBoxStyle = {'activestyle': 'none', 'bg': 'gray8', 'fg': 'gray80', 'selectbackground': 'gray16', 'selectforeground': 'gray80',  'highlightthickness': 0}
+        self.frameStyle = {'bg' : 'gray8'}
 
         # font
         self.font = tkFont.Font(root=self.root, family='Calibri', size=14)
 
+        # Root
+        self.center()
+
+        self.root.configure(**self.windowStyle)
+        self.root.attributes('-topmost',True)
+        self.root.overrideredirect(1)
+        self.root.wm_attributes('-alpha', 0.9)
         self.root.bind('<Escape>', self.quit)
 
-        self.frame = Frame(self.root, bg='gray8')
+        #Frame
+        self.frame = Frame(self.root, **self.frameStyle)
         self.frame.pack(expand=True, fill=BOTH)
 
         # Search
         self.searchVar = StringVar()
         self.searchVar.trace('w', self.filter)
-        self.search = Entry(self.frame, textvariable = self.searchVar, bg='black', fg='gray90', font=self.font, 
-            insertbackground='gray90', highlightcolor='green', highlightbackground='black', highlightthickness=1, relief='flat')# relief='flat'
+        self.search = Entry(self.frame, textvariable = self.searchVar, font=self.font, **self.searchStyle)
         self.search.pack(expand=False, fill=X)
         self.search.bind('<Down>', self.down)
         self.search.bind('<Return>', self.first)
         
         # List
-        self.fileList = Listbox(self.frame, activestyle='none', bg='gray8', fg='gray80', selectbackground='gray16', selectforeground='gray80', font= self.font, highlightthickness=0)
+        self.fileList = Listbox(self.frame, font= self.font, **self.listBoxStyle)
         self.list = notepad.getFiles()
         self.fill()
         self.fileList.bind('<Return>', self.go)
@@ -67,9 +62,22 @@ class TabSwitcher():
         
         self.filtered = []
 
+        self.root.lift()
         self.root.focus_force()
         self.search.focus()
         self.root.mainloop()
+
+    def center(self):
+        self.nppHwnd = ctypes.windll.user32.FindWindowW(u'Notepad++', None)
+        if self.nppHwnd == 0: return
+        rect = RECT()
+        ctypes.windll.user32.GetWindowRect(self.nppHwnd, byref(rect))
+        w = 600
+        x = (rect.w - w)/2 + rect.x
+        h = 400
+        y = (rect.h - h)/2 + rect.y            
+        geom = '%dx%d+%d+%d' % (w, h, x, y)
+        self.root.geometry(geom)
 
     def down(self, event):
         self.fileList.select_set(0)
@@ -95,7 +103,6 @@ class TabSwitcher():
         for tab in self.list: self.fileList.insert(END, tab[0])
     
     def filter(self, *args):
-        console.clear()
         if len(self.searchVar.get()) == 0: 
             self.fill()
             return
