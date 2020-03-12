@@ -5,6 +5,7 @@ Notepad++ Tab Switching with Python Script
 1. Install [Python Script plugin](https://github.com/bruderstein/PythonScript)
 1. Copy *tabSwitcher.py* to plugin scripts (%APPDATA%\Notepad++\plugins\config\PythonScript\scripts)
 1. Optionally (but very recommended) assign a shortcut with *Shortcut Mapper...*
+1. Optionally adjust colors to your taste and theme
 
 ## Usage
 1. Call script either with shortcut (recommended) or from menu
