@@ -23,22 +23,15 @@ class TabSwitcher():
 
         self.root = Tk()
         self.nppHwnd = ctypes.windll.user32.FindWindowW(u'Notepad++', None)
-        #console.write('N++ HWND=' + "0x{:02x}".format(self.nppHwnd) + '\n')
-        #self.tabHwnd = ctypes.windll.user32.FindWindowExA(self.nppHwnd, None, 'SysTabControl32', None)
-        #console.write('Tab HWND=' + "0x{:02x}".format(self.tabHwnd) + '\n')
         if self.nppHwnd != 0 :
             rect = RECT()
             ctypes.windll.user32.GetWindowRect(self.nppHwnd, byref(rect))
-            #console.write('RECT: x=' + str(win_rect.x))
             w = 600
             x = (rect.w - w)/2 + rect.x
             h = 400
             y = (rect.h - h)/2 + rect.y            
             geom = '%dx%d+%d+%d' % (w, h, x, y)
-            console.write(geom + '\n')
-            console.write('top:%d left:%d right:%d bottom:%d' % (rect.top, rect.left, rect.right, rect.bottom) + '\n')
             self.root.geometry(geom)
-            #self.root.geometry("600x300+-600+0")
 
         self.root.lift()
         self.root.attributes('-topmost',True)
@@ -51,7 +44,6 @@ class TabSwitcher():
         # font
         self.font = tkFont.Font(root=self.root, family='Calibri', size=14)
 
-
         self.root.bind('<Escape>', self.quit)
 
         self.frame = Frame(self.root, bg='gray8')
@@ -62,9 +54,9 @@ class TabSwitcher():
         self.searchVar.trace('w', self.filter)
         self.search = Entry(self.frame, textvariable = self.searchVar, bg='black', fg='gray90', font=self.font, 
             insertbackground='gray90', highlightcolor='green', highlightbackground='black', highlightthickness=1, relief='flat')# relief='flat'
-        #self.search.config(selectbackground='SpringGreen2', highlightthickness=3)
         self.search.pack(expand=False, fill=X)
         self.search.bind('<Down>', self.down)
+        self.search.bind('<Return>', self.first)
         
         # List
         self.fileList = Listbox(self.frame, activestyle='none', bg='gray8', fg='gray80', selectbackground='gray16', selectforeground='gray80', font= self.font, highlightthickness=0)
@@ -82,10 +74,13 @@ class TabSwitcher():
     def down(self, event):
         self.fileList.select_set(0)
         self.fileList.focus()
-        
+
+    def first(self, event):
+        self.fileList.select_set(0)
+        self.go(event)
+
     def go(self, event):
         selected = self.fileList.curselection()
-        #console.write('Enter pressed. Selected = ' + ','.join(list(map(str, selected))) + '\n')
         if len(selected) == 0: return
         selIndex = selected[0]
         tab = self.list[selIndex] if len(self.filtered)==0 else self.filtered[selIndex]
@@ -112,7 +107,6 @@ class TabSwitcher():
                 self.fileList.insert(END, tab[0])
 
     def match(self, text, name):
-        #console.write('Look for ' + text + ' in ' + name)
         index = 0
         weight = 0
         found = 0
