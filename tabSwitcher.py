@@ -95,16 +95,21 @@ class TabSwitcher():
         for tab in self.list: self.fileList.insert(END, tab[0])
     
     def filter(self, *args):
+        console.clear()
         if len(self.searchVar.get()) == 0: 
             self.fill()
             return
         text = self.searchVar.get()
         self.fileList.delete(0, END)
         self.filtered = []
+        matched = []
         for tab in self.list:
-            if (self.match(text, tab[0]) > 0):
-                self.filtered.append(tab)
-                self.fileList.insert(END, tab[0])
+            weight = self.match(text, tab[0])
+            if (weight > 0):
+                matched.append((weight, tab))
+        for m in sorted(matched, key=lambda item : item[0], reverse=True):
+            self.filtered.append(m[1])
+            self.fileList.insert(END, m[1][0])
 
     def match(self, text, name):
         index = 0
@@ -112,6 +117,7 @@ class TabSwitcher():
         found = 0
         last = -1
         size = len(text)
+        matchlen = 0
         uname = name.decode('utf-8')
 
         if len(text)==0:
@@ -119,8 +125,10 @@ class TabSwitcher():
         for i in range(len(uname)):
             cc = uname[i]
             if cc == text[index]:
-                weight = weight + 1 if i == last+1 else 1
-                found += weight
+                if (matchlen > 0 and text[index-matchlen]==uname[i-matchlen]):                    
+                    found += matchlen
+                matchlen = 1 if (i != last+1) else matchlen+1
+                found += 1
                 index += 1
                 last = i
                 if index == size: 
