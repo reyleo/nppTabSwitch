@@ -119,28 +119,36 @@ class TabSwitcher():
             self.fileList.insert(END, m[1][0])
 
     def match(self, text, name):
-        index = 0
-        weight = 0
-        found = 0
-        last = -1
         size = len(text)
-        matchlen = 0
+        start = 0
+        end = 1
         uname = name.decode('utf-8')
-
         if len(text)==0:
             return 0
-        for i in range(len(uname)):
-            cc = uname[i]
-            if cc == text[index]:
-                if (matchlen > 0 and text[index-matchlen]==uname[i-matchlen]):                    
-                    found += matchlen
-                matchlen = 1 if (i != last+1) else matchlen+1
-                found += 1
-                index += 1
-                last = i
-                if index == size: 
-                    return found
-        return 0
+        # start
+        words = [0]
+        wc = 0
+        pos = 0
+        last = 0
+
+        while(end <= size):
+            last = pos
+            pos = uname.find(text[start:end],last)
+            wlen = end - start
+            if (pos >= 0):
+                words[wc] = wlen
+                end += 1
+            else:
+                # single char not found - means no match
+                if (wlen==1): return 0
+                # otherwise reset search
+                pos = last + words[wc]
+                words.append(0)
+                wc += 1
+                start = end-1
+
+        return sum(list(map(lambda x: sum(range(x+1)), words)))
+
                         
 TabSwitcher()
 
