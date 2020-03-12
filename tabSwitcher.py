@@ -126,7 +126,7 @@ class TabSwitcher():
         size = len(text)
         start = 0
         end = 1
-        uname = name.decode('utf-8')
+        uname = name.decode('utf-8').lower()
         if len(text)==0:
             return 0
         # start
@@ -137,7 +137,7 @@ class TabSwitcher():
 
         while(end <= size):
             last = pos
-            pos = uname.find(text[start:end],last)
+            pos = uname.find(text[start:end].lower(), last)
             wlen = end - start
             if (pos >= 0):
                 words[wc] = wlen
