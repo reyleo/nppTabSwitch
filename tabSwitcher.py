@@ -72,7 +72,7 @@ except NameError:
 
             # List
             self.fileList = Listbox(self.frame, font= self.font, **self.listBoxStyle)
-            self.list = notepad.getFiles()
+            self.list = list(map(self.tabWithShortName, notepad.getFiles()))
             self.fileList.bind('<Return>', self.go)
             self.fileList.pack(expand=True, fill=BOTH)
             
@@ -88,13 +88,18 @@ except NameError:
 
             self.root.mainloop()
 
+        def tabWithShortName(self,tab):
+            return tab + (self.shortname(tab[0]),)
+        
+        def shortname(self,name):
+            return name if len(name) < 100 else '...' + name[-100:]
 
         def center(self):
             self.nppHwnd = ctypes.windll.user32.FindWindowW(u'Notepad++', None)
             if self.nppHwnd == 0: return
             rect = RECT()
             ctypes.windll.user32.GetWindowRect(self.nppHwnd, byref(rect))
-            w = 600
+            w = rect.w * 0.75
             x = (rect.w - w)/2 + rect.x
             h = 400
             y = (rect.h - h)/2 + rect.y            
@@ -127,7 +132,7 @@ except NameError:
             
         def fill(self):
             self.fileList.delete(0,END)
-            for tab in self.list: self.fileList.insert(END, tab[0])
+            for tab in self.list: self.fileList.insert(END, tab[4])
         
         def filter(self, *args):
             if len(self.searchVar.get()) == 0: 
@@ -143,7 +148,7 @@ except NameError:
                     matched.append((weight, tab))
             for m in sorted(matched, key=lambda item : item[0], reverse=True):
                 self.filtered.append(m[1])
-                self.fileList.insert(END, m[1][0])
+                self.fileList.insert(END, m[1][4])
 
         def match(self, text, name):
             size = len(text)
