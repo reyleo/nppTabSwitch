@@ -13,4 +13,4 @@ Notepad++ Tab Switching with Python Script
     * To go to first tab in the list: press *Enter*
     * To select file from list: press *Down*, select file, *Enter*
 
-![animated-tabSwitch](https://user-images.githubusercontent.com/22909498/76699036-e1b1ec80-66b1-11ea-81cb-07648e3f0f5b.gif)
+
