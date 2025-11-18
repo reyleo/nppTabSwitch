@@ -1,12 +1,12 @@
-from Tkinter import *
-import tkFont
+from tkinter import *
+from tkinter.font import Font
 import ctypes
 from ctypes import byref, Structure, wintypes
 from ctypes.wintypes import BOOL, HWND, LPARAM, LONG
 
 try:
     TabSwitcher().show()
-except NameError:    
+except NameError:
     class RECT(Structure):
         _fields_ = [
                 ('left',   wintypes.LONG ),
@@ -14,7 +14,7 @@ except NameError:
                 ('right',  wintypes.LONG ),
                 ('bottom', wintypes.LONG )
             ]
-    
+
         x = property(lambda self: self.left)
         y = property(lambda self: self.top)
         w = property(lambda self: self.right-self.left)
@@ -37,14 +37,15 @@ except NameError:
             self.listBoxStyle = {'activestyle': 'none', 'bg': 'gray8', 'fg': 'gray80', 'selectbackground': 'gray16', 'selectforeground': 'gray80',  'highlightthickness': 0}
             self.frameStyle = {'bg' : 'gray8'}
 
-            # Search 
+            # Search
             self.lastSearch = ''
+            self.showLastSearch = False
 
-        def show(self):      
+        def show(self):
             self.root = Tk()
 
             # font
-            self.font = tkFont.Font(root=self.root, family='Calibri', size=14)
+            self.font = Font(root=self.root, family='Calibri', size=14)
 
             # Root
             self.center()
@@ -52,7 +53,7 @@ except NameError:
             self.root.configure(**self.windowStyle)
             self.root.attributes('-topmost',True)
             self.root.overrideredirect(1)
-            self.root.wm_attributes('-alpha', 0.9)
+            # self.root.wm_attributes('-alpha', 0.9)
             self.root.bind('<Escape>', self.quit)
 
             #Frame
@@ -61,7 +62,7 @@ except NameError:
 
             # Search
             self.searchVar = StringVar()
-            self.searchVar.set(self.lastSearch)
+            self.searchVar.set(self.lastSearch if self.showLastSearch else '')
             self.searchVar.trace('w', self.filter)
             self.search = Entry(self.frame, textvariable = self.searchVar, font=self.font, **self.searchStyle)
             self.search.pack(expand=False, fill=X)
@@ -71,11 +72,11 @@ except NameError:
             self.filtered = []
 
             # List
-            self.fileList = Listbox(self.frame, font= self.font, **self.listBoxStyle)
+            self.fileList = Listbox(self.frame, font=self.font, **self.listBoxStyle)
             self.list = list(map(self.tabWithShortName, notepad.getFiles()))
             self.fileList.bind('<Return>', self.go)
             self.fileList.pack(expand=True, fill=BOTH)
-            
+
             self.filter()
 
             self.root.lift()
@@ -90,7 +91,7 @@ except NameError:
 
         def tabWithShortName(self,tab):
             return tab + (self.shortname(tab[0]),)
-        
+
         def shortname(self,name):
             return name if len(name) < 100 else '...' + name[-100:]
 
@@ -99,19 +100,17 @@ except NameError:
             if self.nppHwnd == 0: return
             rect = RECT()
             ctypes.windll.user32.GetWindowRect(self.nppHwnd, byref(rect))
-            w = rect.w * 0.75
+            w = rect.w * 0.60
             x = (rect.w - w)/2 + rect.x
             h = 400
-            y = (rect.h - h)/2 + rect.y            
+            y = (rect.h - h)/2 + rect.y
             geom = '%dx%d+%d+%d' % (w, h, x, y)
             self.root.geometry(geom)
 
         def down(self, event):
             size = self.fileList.size()
-            pos = 1 if size > 1 else 0        
-            self.fileList.select_clear(0, size-1)
-            self.fileList.select_set(pos)
-            self.fileList.activate(pos)
+            pos = 1 if size > 1 else 0
+            self.select(pos)
             self.fileList.focus()
 
         def first(self, event):
@@ -125,18 +124,24 @@ except NameError:
             tab = self.list[selIndex] if len(self.filtered)==0 else self.filtered[selIndex]
             notepad.activateBufferID(tab[1])
             self.quit()
-            
+
         def quit(self, *args):
             self.lastSearch = self.searchVar.get()
             self.root.destroy()
-            
+
         def fill(self):
             self.fileList.delete(0,END)
             for tab in self.list: self.fileList.insert(END, tab[4])
-        
+
+        def select(self, pos):
+            self.fileList.selection_clear(0, END)
+            self.fileList.selection_set(pos)
+            self.fileList.activate(pos)
+
         def filter(self, *args):
-            if len(self.searchVar.get()) == 0: 
+            if len(self.searchVar.get()) == 0:
                 self.fill()
+                self.select(0)
                 return
             text = self.searchVar.get()
             self.fileList.delete(0, END)
@@ -149,12 +154,13 @@ except NameError:
             for m in sorted(matched, key=lambda item : item[0], reverse=True):
                 self.filtered.append(m[1])
                 self.fileList.insert(END, m[1][4])
+            self.select(0)
 
         def match(self, text, name):
             size = len(text)
             start = 0
             end = 1
-            uname = name.decode('utf-8').lower()
+            uname = name.lower()
             if len(text)==0:
                 return 0
             # start
@@ -163,16 +169,16 @@ except NameError:
             pos = 0
             last = 0
 
-            while(end <= size):
+            while end <= size:
                 last = pos
                 pos = uname.find(text[start:end].lower(), last)
                 wlen = end - start
-                if (pos >= 0):
+                if pos >= 0:
                     words[wc] = wlen
                     end += 1
                 else:
                     # single char not found - means no match
-                    if (wlen==1): return 0
+                    if wlen==1: return 0
                     # otherwise reset search
                     pos = last + words[wc]
                     words.append(0)
@@ -181,6 +187,6 @@ except NameError:
 
             return sum(list(map(lambda x: sum(range(x+1)), words)))
 
-                            
+
     TabSwitcher().show()
 
