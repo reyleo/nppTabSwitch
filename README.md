@@ -7,6 +7,9 @@ Notepad++ Tab Switching with Python Script
 1. Optionally (but very recommended) assign a shortcut with *Shortcut Mapper...*
 1. Optionally adjust colors to your taste and theme
 
+## Python Script version 3
+To use version that works with latest PythonScript and Pythin 3+ switch to Python3 branch
+
 ## Usage
 1. Call script either with shortcut (recommended) or from menu
 1. Start typing. List will be filtered based on your input
